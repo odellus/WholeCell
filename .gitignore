@@ -6,6 +6,7 @@
 bin/*
 doc/m2html/*
 doc/doxygen/*
+cloudOutput/*
 output/*
 individual_perturbations/*
 individual_perturbations/averaged_output/*
