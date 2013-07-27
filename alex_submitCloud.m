@@ -1,3 +1,5 @@
+clear; close all; clc;
+
 % Set up the model
 setPath();
 setWarnings();

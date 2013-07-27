@@ -26,21 +26,32 @@ end
 %references
 g = this.state('Geometry');
 met = this.state('Metabolite');
+mr = this.state('MetabolicReaction');
 
 %allocate memory
 this.allocateMemoryForState(1);
 
 %initialize state
-this.initializeState();
-if ~isempty(ic) && numel(fieldnames(ic)) > 0
+for i = 1:this.maxInitStateAttempts
+    this.initializeState();
+    
+    %If cell is dead, rerun initialize state
+    if abs(mr.growth - mr.meanInitialGrowthRate) / mr.meanInitialGrowthRate <= mr.initialGrowthFilterWidth || isempty(this.seed)
+        break;
+    end
+    
+    this.seed = this.randStream.randi([0 2^32-1], 1);
+end
+
+if isstruct(ic) && isfield(ic, 'states') && numel(fieldnames(ic.states)) > 0
     %override default initial conditions
-    fields = fieldnames(ic);
+    fields = fieldnames(ic.states);
     for i = 1:numel(fields)
-        s = this.state(regexprep(fields{i}, '^Process_', ''));
+        s = this.state(regexprep(fields{i}, '^State_', ''));
         
-        subfields = fieldnames(ic.(fields{i}));
+        subfields = fieldnames(ic.states.(fields{i}));
         for j = 1:numel(subfields)
-            tmp = ic.(fields{i}).(subfields{j});
+            tmp = ic.states.(fields{i}).(subfields{j});
             if isnumeric(tmp)
                 s.(subfields{j})(~isnan(tmp)) = tmp(~isnan(tmp));
             else

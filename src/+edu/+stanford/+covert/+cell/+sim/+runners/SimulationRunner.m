@@ -91,14 +91,14 @@ classdef SimulationRunner < handle
             
             %construct KB and simulation
             fprintf('Constructing %s simulation ...\n', simName);
-            [sim, kb] = this.constructKbAndSimulation();
+            [sim, kb, kbWid] = this.constructKbAndSimulation();
             
             %run simulation
             fprintf('Running %s simulation ...\n', simName);
-            this.runSimulation(sim);
+            this.runSimulation(sim, kbWid);
         end
         
-        function [sim, kb] = constructKbAndSimulation(this)
+        function [sim, kb, kbWid] = constructKbAndSimulation(this)
             import edu.stanford.covert.cell.sim.Simulation;
             import edu.stanford.covert.cell.sim.util.FitConstants;
             
@@ -181,10 +181,6 @@ classdef SimulationRunner < handle
             %handle to MetabolicReaction state
             mr = sim.state('MetabolicReaction');
             
-            %save filter
-            initialGrowthFilterWidth = mr.initialGrowthFilterWidth;
-            mr.initialGrowthFilterWidth = Inf;
-            
             %sample initial conditions
             growths = zeros(nSample, 1);
             for i = 1:nSample
@@ -192,9 +188,6 @@ classdef SimulationRunner < handle
                 sim.initializeState();
                 growths(i) = mr.growth;
             end
-            
-            %restore filter
-            mr.initialGrowthFilterWidth = initialGrowthFilterWidth;
             
             %test
             val = ...
@@ -260,7 +253,7 @@ classdef SimulationRunner < handle
             ProcessFixture.store(sim.process('Metabolism'));
         end
         
-        function runSimulation(this, sim)
+        function runSimulation(this, sim, kbWid)
             %% import
             import edu.stanford.covert.cell.sim.constant.Condition;
             import edu.stanford.covert.cell.sim.util.ConditionSet;
@@ -277,10 +270,12 @@ classdef SimulationRunner < handle
             %load perturbations
             if ~isempty(this.outDir) && exist([this.outDir filesep 'conditions.xml'], 'file')
                 data = ConditionSet.parseConditionSet(sim, [this.outDir filesep 'conditions.xml']);
-                data.metadata.knowledgeBaseWID = knowledgeBaseWID;
+                data.metadata.knowledgeBaseWID = kbWid;
                 sim.applyOptions(data.options);
                 sim.applyOptions(data.perturbations);
                 sim.applyParameters(data.parameters);
+                sim.applyFittedConstants(data.fittedConstants);
+                sim.applyFixedConstants(data.fixedConstants);
                 summaryLogger.setOptions(struct('verbosity', sim.verbosity, 'outputDirectory', this.outDir));
             end
             
@@ -418,10 +413,15 @@ classdef SimulationRunner < handle
                 %choose an initial simulation state with desired growth rate
                 sim.applyOptions('seed', 1);
                 mr = sim.state('MetabolicReaction');
-                initGrowthFilterW = mr.initialGrowthFilterWidth;
-                mr.initialGrowthFilterWidth = 1e-2;
-                sim.initializeState();
-                mr.initialGrowthFilterWidth = initGrowthFilterW;
+                mr.initialGrowthFilterWidth = 0.95;
+                while true
+                    sim.initializeState();
+                    if abs(mr.growth - mr.meanInitialGrowthRate) / mr.meanInitialGrowthRate <= 1e-2
+                        break;
+                    end
+                    
+                    sim.applyOptions('seed', this.randStream.randi([0 2^32-1], 1));
+                end
                 
                 %cache simulation object
                 if this.cacheSimulation
