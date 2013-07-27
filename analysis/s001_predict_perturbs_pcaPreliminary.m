@@ -1,9 +1,11 @@
-% This script attempts to build a neural network that aims to predict
-% elements of perturbVec based on rnaArray data.
+% This script attempts to predict paramters of simluations from the rnaSeq
+% highthroughput data. This code was written to give me some insight into
+% the data by playing around with different plots. It is mostly here to
+% keep a record of what I did, and is not particularly useful anymore.
 
 close all; clear; clc
 set(0,'DefaultFigureWindowStyle','docked')
-datatype = 'rnaSeq';
+datatype = 'rnaArray';
 
 cd ..
 sim = edu.stanford.covert.cell.sim.util.CachedSimulationObjectUtil.load();

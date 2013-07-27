@@ -1,7 +1,7 @@
 function f000_predictPerturbs_pairwiseCorr(datatype)
 
 % Load rnaArray.mean for all simulations.
-basedir = 'C:\Users\Alex\Documents\Projects\DREAM8\WholeCell-parameter-estimation-DREAM-challenge-2013\';
+basedir = 'C:\Users\Alex\Documents\GitHub\WholeCell\';
 outputdir = [basedir 'output\'];
 unmod = load([basedir 'individual_perturbations\averaged_output\averaged_sim-0.mat']);
 W = what(outputdir);
@@ -34,8 +34,8 @@ data_stacked(end,:) = mean_vec(good_ind);
 data_normlzd = zscore(data_stacked,0,2);
 [Coeff,Score,~,~,Explained] = pca(data_normlzd);
 
-save(['f000_' datatype '.mat'],'pV_stacked','data_stacked','Coeff',...
-                               'Score','Explained');
+save(['./compiled_data/f000_' datatype '.mat'],'pV_stacked',...
+                      'data_stacked','Coeff','Score','Explained');
 
 figure;
 subplot(2,1,1)
