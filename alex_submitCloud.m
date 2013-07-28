@@ -12,10 +12,10 @@ rxnKinetics = sim.getMetabolicReactionKinetics();
 %sim.applyRnaPolTuBindingProbs(struct('TU_011', 0.5 * rnaPolTuBindingProbs.('TU_011')));
 
 % Alter kcats
-sim.applyMetabolicReactionKinetics(struct('MetK', struct('for', 0.5 * rxnKinetics.('MetK').for)));
+sim.applyMetabolicReactionKinetics(struct('Pgi', struct('for', 0.5 * rxnKinetics.('Pgi').for)));
 
 % Save the parameters locally
-simName = 'MetK_kcat_x05';
+simName = 'Pgi_kcat_x05';
 parameters = sim.getAllParameters();
 
 % Submit to the cloud
