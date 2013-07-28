@@ -63,7 +63,7 @@ for b = 1:length(nComp)
     plot((param+offsets(b))*ones(1,2),[(y_est-y_err); (y_est+y_err)],'-','Color',colors(b))
     perturbVec_est(param) = mean(y_est);
   end
-  save(['s003_perturbVec_est_nComp' num2str(nComp(b))],'perturbVec_est')
+  save(['./compiled_data/s003_perturbVec_est_nComp' num2str(nComp(b))],'perturbVec_est')
 end
 xlabel('Different Parameters')
 ylabel('Estimate of Perturbation (% change)')
