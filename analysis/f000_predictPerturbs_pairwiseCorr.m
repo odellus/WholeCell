@@ -31,7 +31,7 @@ data_stacked(end,:) = mean_vec(good_ind);
 
 
 % Normalize rnaArray data as z-scores. Use PCA to reduce dimensionality
-data_normlzd = zscore(data_stacked,0,2);
+data_normlzd = zscore(data_stacked);
 [Coeff,Score,~,~,Explained] = pca(data_normlzd);
 
 save(['./compiled_data/f000_' datatype '.mat'],'pV_stacked',...

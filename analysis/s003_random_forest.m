@@ -11,7 +11,8 @@ datatypes = {'metConcs'
              'rnaSeq'
              'chipSeq'
              'rnaArray'
-             'protArray'}; % 'rxnFluxes' left out, zscore is bad..
+             'protArray'
+             'rxnFluxes'};
 
 all_data_stacked = [];
 for a = 1:length(datatypes)
@@ -21,27 +22,28 @@ for a = 1:length(datatypes)
   %sPCA.(datatypes{a}).Score = S.Explained(1:25);
   pV_stacked = S.pV_stacked;
 end
-S = load('./compiled_data/f000_rxnFluxes.mat');
 
-data_normlzd = zscore(all_data_stacked,0,2);
+minCols = min(all_data_stacked);
+rngCols = range(all_data_stacked);
+nr = size(all_data_stacked,1);
+data_normlzd = zscore(all_data_stacked);
 [Coeff,Score,~,~,Explained] = pca(data_normlzd);
 
+% Figure suggesting that ~25 principal components and ~400 trees is enough
+figure; hold all
+for nComp = [5 25 100 length(Explained)]
+  X = Score(1:(end-1),1:nComp);
+  y = pV_stacked(3,:)';
+  
+  opts = statset('UseParallel','always');
+  B = TreeBagger(5e2,X,y,'Method','regression','oobvarimp','on','Options',opts);
+  plot(oobError(B))
+  xlabel('number of grown trees')
+  ylabel('out-of-bag classification error')
+end
+legend('5','10','15','25','50','100')
 
-% % Figure suggesting that 5 principal components and ~450 trees is enough
-% figure; hold all
-% for nComp = [5 10 15 25 50 100]
-%   X = Score(1:(end-1),1:nComp);
-%   y = pV_stacked(3,:)';
-%   
-%   opts = statset('UseParallel','always');
-%   B = TreeBagger(1e3,X,y,'Method','regression','oobvarimp','on','Options',opts);
-%   plot(oobError(B))
-%   xlabel('number of grown trees')
-%   ylabel('out-of-bag classification error')
-% end
-% legend('5','10','15','25','50','100')
-
-% Figure the random forest predictions for each variable:
+% Figure showing the random forest predictions for each variable:
 figure; hold on
 nComp = [5 50 100];
 colors = ['b' 'r' 'k'];
