@@ -14,7 +14,10 @@ function [fns,avg_fn] = alex_perturb_wholeCell(perturbVec, nTrials)
 %                        different seed.
 %
 % OUTPUT: "fns"    - Cell array holding the filenames of each simulation.
-%                    These are saved in the directory "./output"
+%                    These are saved in the directory "./output". If
+%                    nTrials == 1, they are saved in the sub-directory
+%                    "single"; if nTrials > 1, they are saved in the
+%                    sub-directory "multiple".
 %         "avg_fn" - String holding the file holding the averaged
 %                    simulation data (across nTrials). If nTrials == 1,
 %                    then avg_fn = nan.
@@ -67,7 +70,13 @@ for i_gene = 1:10
 end
 
 % Run the whole-cell simulation three times and save in "output"
-dirLen = length(dir('./output'))-2;
+if nTrials == 1
+  outDir = './output/single'; % save single trials here
+else
+  outDir = './output/multiple'; % save replicate trials here
+end
+
+dirLen = length(dir(outDir))-2;
 tag = randi(1e7);
 fns = cell(nTrials,1);
 for trial = 1:nTrials
@@ -76,19 +85,18 @@ for trial = 1:nTrials
   
   parameterVals = sim.getAllParameters();
   
-  filename = sprintf('whole-cell-sim-%06i-%08i-%09i-%i.mat',dirLen,tag,seed,trial);
+  fns{trial} = sprintf('whole-cell-sim-%06i-%08i-%09i-%i.mat',dirLen,tag,seed,trial);
   simulateHighthroughputExperiments(...
     'seed', seed, ...
     'parameterVals', parameterVals, ...
-    'simPath', ['output/' filename] ...
+    'simPath', [outDir '/' fns{trial}] ...
     );
-  fns{trial} = filename;
 end
 
 if nTrials > 1
   % Average the three simulations and save in "averaged_output"
   averageHighthroughputExperiments(...
-    'simPathPattern', sprintf('output/whole-cell-sim-%06i-%08i-*.mat',dirLen,tag), ...
+    'simPathPattern', sprintf('output/multiple/whole-cell-sim-%06i-%08i-*.mat',dirLen,tag), ...
     'avgValsPath', sprintf('averaged_output/averaged_sim-%06i-%08i.mat',dirLen,tag) ...
     );
   
