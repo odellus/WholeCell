@@ -1,4 +1,4 @@
-function filename = alex_perturb_wholeCell(perturbVec)
+function [fns,avg_fn] = alex_perturb_wholeCell(perturbVec, nTrials)
 % alex_perturb_wholeCell: Runs a simulation of the whole cell model. Each
 %                         of the 30 free parameters are perturbed by the
 %                         entries given in "perturbVec"
@@ -9,14 +9,21 @@ function filename = alex_perturb_wholeCell(perturbVec)
 %                        criteria listed in the competition description,
 %                        all entries should be on the interval [0.0660,
 %                        1.906].
+%         "nTrials"    - Integer to specify the number of trials to run.
+%                        If nTrials > 1, then each simulation is run with a
+%                        different seed.
 %
-% OUTPUT: "filename"   - string holding the filename where the simulation
-%                        results are saved.
+% OUTPUT: "fns"    - Cell array holding the filenames of each simulation.
+%                    These are saved in the directory "./output"
+%         "avg_fn" - String holding the file holding the averaged
+%                    simulation data (across nTrials). If nTrials == 1,
+%                    then avg_fn = nan.
 %
 % Author: Alex Williams
 
 assert(length(perturbVec) == 30);
 assert(all(perturbVec > 0));
+assert(nTrials >= 1);
 
 rng('shuffle')
 
@@ -62,7 +69,8 @@ end
 % Run the whole-cell simulation three times and save in "output"
 dirLen = length(dir('./output'))-2;
 tag = randi(1e7);
-for trial = 1:3
+fns = cell(nTrials,1);
+for trial = 1:nTrials
   seed = randi(220516568);
   sim.applyOptions('lengthSec', 65000, 'seed', seed);
   
@@ -74,13 +82,19 @@ for trial = 1:3
     'parameterVals', parameterVals, ...
     'simPath', ['output/' filename] ...
     );
+  fns{trial} = filename;
 end
 
-% Average the three simulations and save in "averaged_output"
-averageHighthroughputExperiments(...
-   'simPathPattern', sprintf('output/whole-cell-sim-%06i-%08i-*.mat',dirLen,tag), ...
-   'avgValsPath', sprintf('averaged_output/averaged_sim-%06i-%08i-new.mat',dirLen,tag) ...
-   );
-
-% Append perturb vector to file
-save(sprintf('./averaged_output/averaged_sim-%06i-%08i.mat',dirLen,tag),'perturbVec','-append')
+if nTrials > 1
+  % Average the three simulations and save in "averaged_output"
+  averageHighthroughputExperiments(...
+    'simPathPattern', sprintf('output/whole-cell-sim-%06i-%08i-*.mat',dirLen,tag), ...
+    'avgValsPath', sprintf('averaged_output/averaged_sim-%06i-%08i.mat',dirLen,tag) ...
+    );
+  
+  % Append perturb vector to file
+  save(sprintf('./averaged_output/averaged_sim-%06i-%08i.mat',dirLen,tag),'perturbVec','-append')
+  avg_fn = sprintf('averaged_sim-%06i-%08i.mat',dirLen,tag);
+else
+  avg_fn = nan;
+end

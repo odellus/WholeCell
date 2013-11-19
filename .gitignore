@@ -7,13 +7,5 @@ bin/*
 doc/m2html/*
 doc/doxygen/*
 output/*
-output/runAnalysisTests/*
-output/runCoverageTests/*
-output/runLargeTests/*
-output/runMediumTests/*
-output/runMediumDNATests/*
-output/runMediumProteinTests/*
-output/runSimulation/*
-output/runSimulationTests/*
-output/runSmallTests/*
+averaged_output/*
 tmp/*
