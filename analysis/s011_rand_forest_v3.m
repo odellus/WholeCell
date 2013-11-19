@@ -29,26 +29,29 @@ for zzz = 1:100
   clear all_data_stacked % reduce junk in memory
   clear data_normlzd
   
-  x1 = Score(1:(end-1),1:500); % first 25 principal components for all simulations.
+  x1 = Score(1:(end-1),1:50); % first 25 principal components for all simulations.
   x2 = pV_stacked';
-  x1_pred = Score(end,1:500); % The target 'mutant' phenotype
-  x2_pred = alex_randPerturb';
+  x1_pred = Score(end,1:50); % The target 'mutant' phenotype
+  x2_pred = nan(1,30);        % List of estimated params
   
   y_est = nan(30,1);
   pv_ind = 1:30;
+  a_hist = [];
   toc
   for a = randperm(30)
     disp(a)
     tic
     y = pV_stacked(a,:)';
-    x2 = pV_stacked(pv_ind(pv_ind~=a),:)';
+    x2 = pV_stacked(a_hist,:)';
     B = TreeBagger(5e2,[x1 x2],y,'Method','regression');
-    y_est(a) = B.predict([x1_pred x2_pred(pv_ind(pv_ind~=a))]);
+    assert(~any(isnan(x2_pred(a_hist))))
+    y_est(a) = B.predict([x1_pred x2_pred(a_hist)]);
     x2_pred(a) = y_est(a);
+    a_hist = [a_hist; a];
     toc
   end
   
-  load('./compiled_data/pv_est_randForest_500.mat')
-  pv_est_randForest_500(:,end+1) = y_est;
-  save('./compiled_data/pv_est_randForest_500.mat','pv_est_randForest_500')
+  load('./compiled_data/pv_est_randForest_v3.mat')
+  pv_est_randForest_v3(:,end+1) = y_est;
+  save('./compiled_data/pv_est_randForest_v3.mat','pv_est_randForest_v3')
 end
